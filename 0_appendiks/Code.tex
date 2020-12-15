@@ -1,0 +1,566 @@
+\begin{lstlisting}[language=c, caption={Our simulations written in c}, captionpos=b, label={snippet:LABELNAVN}]
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <time.h>
+#include <math.h>
+
+/*Defines the size of the population, which will be used in the simulation
+ - NOTE: population cant exceed RAND_MAX, since we use this for selection when infecting, 
+ which means that only the people with index 0 to RAND_MAX in the population array can be selected*/
+#define populationSize 12500
+
+/*Seed used to seed the randomizer.
+ - NOTE: time(0) can be used to generate a random number on runtime, but any int can be used*/
+#define seed time(0)
+
+/*Defines the number of contacts that a person has in a given day. 
+- NOTE: It will not affect the infectionrate, but will affect the number of people quarantined if contact tracing is on*/
+#define avgContacts 10
+
+#define quarantinePeriod 14 /*Defines the time traced contacts will be quarantined*/
+#define timeFrame 720       /*Timeframe is the number of days the simulation will run for*/
+#define numOfDrops 100      /*The number of simulations that are run when the program starts*/
+
+#define reproductiveNumber 2.5                               /*The reproductive number is the number of people an infected person infects on average.*/
+#define avgInfectionPeriod 10                                /*Defines how long people will be infected for*/
+#define incubationPeriod (rand() % 8 + 3)                    /*Defines how long people will be in incubation before they become sick and can infect others*/
+#define asymptomaticPeriod (rand() % avgInfectionPeriod + 1) /*Defines how long the person will be asymptomatic -NOTE: This affects contact tracing*/
+
+#define startInfectedAmount 1 /* Defines the amount of people to be infected on day 1 of the simulation*/
+
+#define contactTracing true                                    /*Switch to false to turn off contact tracing*/
+#define contactTracingStartTime 30                             /*Defines from what day the contact tracing begins in the simulation*/
+#define traceableContacts (rand() % (avgContacts * 2 - 4) + 5) /* Defines how many contacts of an infected person that can be traced */
+
+/*The different sex a person can be*/
+enum sex
+{
+    female,
+    male
+};
+
+/*The different states that a person can be in*/
+enum states
+{
+    susceptible,
+    infected,
+    recovered,
+    deceased
+};
+
+/*The different age-groups a person can be in*/
+enum age
+{
+    underSixty,
+    sixties,
+    seventies,
+    eighties,
+    ninetyPlus,
+};
+
+/*Struct which contains all variables for each person in population */
+struct Person
+{
+    int ID;
+    int age;
+    int sex;
+    int state;
+    int asymptomaticTimer; /*The asymptomatic timer is for asymptomatic patients as well as pre-symptomatic patients*/
+    int incubationTimer;
+    int infectionTimer;
+    int quarantineTimer;
+    int infectionPeriod;
+    int numOfContacts;
+    bool incubation, severelyInfected, quarantine;
+    int contactID[avgContacts], tracingID[avgContacts * 2];
+};
+
+typedef struct Person Person;
+
+/* Function Prototypes */
+void UpdatePopulation(Person *population, int time);
+void UpdateContacts(Person *population, int infectedID);
+bool CheckContacts(Person infectedPerson, Person contact, int ID);
+void SaveResultsToFile(FILE *file, int results[][7], int maxValueInDrop[][4]);
+void SaveDrop(Person *population, int time, FILE *file, int drop, int selectedDrop);
+void SaveResults(Person *population, int results[][7], int maxValueInDrop[][4], int drop, int time);
+void ResetContacts(Person *population, int time);
+void setAgeSex(Person *population);
+int CountState(Person *population, int status);
+int CountAge(Person *population, int ageGroup);
+
+int main()
+{
+    printf("Simulating...\nResults are being generated: \n");
+    int startInfection;
+    int localSeed = seed;
+
+    /* file pointer is initialized and a .csv file is generated to store the data from the simulation*/
+    FILE *fPointer;
+    char strSeed[40];
+    sprintf(strSeed, "%i", localSeed);
+    char *fileName = strcat(strSeed, "seed.csv");
+    fPointer = fopen(fileName, "w");
+    fprintf(fPointer, "seed:;%i;Number of drops:;%i\n\n\n", localSeed, numOfDrops);
+
+    int resultArray[timeFrame][7] = {{0}}; /*Array which contains the sum of the results for all of the drops*/
+    int maxValues[numOfDrops][4] = {{0}};  /*Array which contain all of the max values we are interested in extracting from each drop*/
+
+    for (int drops = 1; drops <= numOfDrops; drops++)
+    {
+        /*We seed the randomizer for each drop, so that comparison is posibble, since if its not done, the next drops are affected by the previous drops rands*/
+        srand(localSeed + drops);
+
+        /*Dynamically allocate memory according to how big the population is. 
+        --- WARNING --- Usage of static allocated arrays will result in not being able to use a population exceeding 12000*/
+        Person *population = calloc(populationSize, sizeof(Person));
+
+        /* Initializes all needed variables for the entire population*/
+        for (int i = 0; i < populationSize; i++)
+        {
+            (population + i)->ID = i;
+            (population + i)->infectionTimer = avgInfectionPeriod;
+            (population + i)->incubationTimer = 7;
+            (population + i)->infectionPeriod = avgInfectionPeriod;
+            (population + i)->asymptomaticTimer = -1;
+            (population + i)->state = susceptible;
+            (population + i)->incubation = false;
+            (population + i)->quarantine = false;
+            (population + i)->quarantineTimer = quarantinePeriod;
+            (population + i)->severelyInfected = false;
+            (population + i)->numOfContacts = avgContacts - 1;
+
+            /*All of the Contact IDs and Tracing IDs are initialized to -1, to be out of bounds for the population*/
+            for (int j = 0; j < avgContacts; j++)
+            {
+                (population + i)->contactID[j] = -1;
+            }
+            for (int k = 0; k < avgContacts * 2; k++)
+            {
+                (population + i)->tracingID[k] = -1;
+            }
+        }
+
+        /*Function call to set the age and sex distribution of the population*/
+        setAgeSex(population);
+
+        printf("%i ", drops);
+
+        /* Infects the first people so the simulation can start*/
+        for (int i = 0; i < startInfectedAmount; i++)
+        {
+            startInfection = rand() % populationSize;
+            (population + startInfection)->state = infected;
+            (population + startInfection)->asymptomaticTimer = asymptomaticPeriod;
+        }
+
+        /* For every day in the timeframe, we check for an update of the state for each person in the population*/
+        for (int days = 1; days <= timeFrame; days++)
+        {
+            UpdatePopulation(population, days);
+            ResetContacts(population, days);
+            SaveResults(population, resultArray, maxValues, drops, days);
+        }
+
+        free(population); /*The allocated memory gets freed up after we're done using it*/
+    }
+
+    SaveResultsToFile(fPointer, resultArray, maxValues);
+    fclose(fPointer); /*The file is closed and data is saved*/
+    printf("\nThe simulation has finished, a data file has been created\n");
+    return EXIT_SUCCESS;
+}
+
+/*Function which saves the sum of the results of all the drops in the result array, 
+it also saves the max value for the number of infected and hospitalized in each drop in the max value array*/
+void SaveResults(Person *population, int results[][7], int maxValueInDrop[][4], int drop, int time)
+{
+
+    /*Temporary array which stores the time, number of people in different states and som sub-states.
+    Its used to load the values in the result array*/
+    int tempResult[7] = {0};
+
+    tempResult[0] = time;
+
+    tempResult[1] = CountState(population, susceptible);
+    tempResult[2] = CountState(population, infected);
+    tempResult[3] = CountState(population, recovered);
+    tempResult[4] = CountState(population, deceased);
+
+    for (int index = 0; index < populationSize; index++)
+    {
+        if ((population + index)->quarantine == true)
+        {
+            tempResult[6]++;
+        }
+        if ((population + index)->severelyInfected == true)
+        {
+            tempResult[5]++;
+        }
+    }
+
+    if (maxValueInDrop[drop - 1][1] < CountState(population, infected))
+    {
+        maxValueInDrop[drop - 1][0] = time;
+        maxValueInDrop[drop - 1][1] = CountState(population, infected);
+    }
+    if (maxValueInDrop[drop - 1][3] < tempResult[5])
+    {
+        maxValueInDrop[drop - 1][2] = time;
+        maxValueInDrop[drop - 1][3] = tempResult[5];
+    }
+
+    /*the results are added to the resul array*/
+    results[time - 1][0] = tempResult[0];
+
+    for (int i = 1; i < 7; i++)
+    {
+        results[time - 1][i] += tempResult[i];
+    }
+}
+
+/* Updates the state of each person, this will be done accordingly to where they are in their incubation/infection period */
+void UpdatePopulation(Person *population, int time)
+{
+    int tracingNum;
+
+    /*Motality rate for the different age groups, these numbers were calculated from the official danish COVID-19 statistics on 09-12-2020.
+    - NOTE: These numbers were calculated by the number of deceased in age groups devided by the number of hospitalized in the same age groups.
+    This is because it is assumed in this simulation that the deceased were hospitalized before they died of the illness*/
+    static double mortalityRateByAge[5] = {0.0132, 0.8923, 0.196, 0.3453, 0.7346};
+
+    /* Checks through the entire population to see if the different checks or timers apply for each person*/
+    for (int i = 0; i < populationSize; i++)
+    {
+        /*Checks if the individual fulfills the criteria for dying due to covid*/
+        if ((population + i)->state != deceased && (population + i)->severelyInfected == true && (population + i)->incubation == false &&
+            ((double)rand() / (double)RAND_MAX) <= mortalityRateByAge[(population + i)->age] / avgInfectionPeriod)
+        {
+            (population + i)->state = deceased;
+            (population + i)->asymptomaticTimer = -1;
+            (population + i)->infectionTimer = -1;
+            (population + i)->severelyInfected = false;
+        }
+        /* Makes sure that the incubation timer ticks down if a person is in incubation*/
+        if ((population + i)->incubation == true)
+        {
+            (population + i)->incubationTimer--;
+
+            /* Makes sure that a person is taken out of incubation if incubation timer reaches 0*/
+            if ((population + i)->incubationTimer == 0)
+            {
+                (population + i)->incubation = false;
+                (population + i)->incubationTimer = -1;
+            }
+        }
+
+        /* Makes sure that the quarantine timer ticks down if a person is in quarantine*/
+        if ((population + i)->quarantine == true)
+        {
+            (population + i)->quarantineTimer--;
+
+            /* Makes sure that a person is taken out of quarantine if the quarantine timer reaches 0*/
+            if ((population + i)->quarantineTimer == 0)
+            {
+                (population + i)->quarantine = false;
+                (population + i)->quarantineTimer = quarantinePeriod;
+            }
+        }
+
+        /* Makes sure that a person get the state recovered if their infection timer reaches 0*/
+        if ((population + i)->infectionTimer == 0)
+        {
+            (population + i)->state = recovered;
+            (population + i)->severelyInfected = false;
+            (population + i)->infectionTimer = -1;
+        }
+        /* Makes sure that if a person gets covid symptoms they get put in quarantine and their tracable contacts 
+           gets traces and put in quarantine aswell*/
+        tracingNum = traceableContacts;
+
+        if ((population + i)->asymptomaticTimer == 0 && (population + i)->state == infected &&
+            (population + i)->quarantine == false && contactTracing == true && time >= contactTracingStartTime)
+        {
+            (population + i)->quarantine = true;
+
+            for (int j = 0; j < tracingNum; j++)
+            {
+                if ((population + i)->tracingID[j] >= 0)
+                {
+                    (population + (population + i)->tracingID[j])->quarantine = true;
+                }
+            }
+        }
+
+        /* Makes sure that if the asymptomatic timer reaches 0, the person is no longer symptomatic. 
+        Setting the timer to -1 ensures that they as well as their contacts dont end up in quarantine multiple times because of contact tracing*/
+        if ((population + i)->asymptomaticTimer == 0)
+        {
+            (population + i)->asymptomaticTimer = -1;
+        }
+        /* If a person is infected and able to infect others, their contacts are updated*/
+        if ((population + i)->state == infected && (population + i)->incubation == false && (population + i)->quarantine == false)
+        {
+            UpdateContacts(population, i);
+        }
+        /* If a person is infected at is out of incubation period, their asymptomatic timer and infection timer is ticked down*/
+        if ((population + i)->state == infected && (population + i)->incubation == false)
+        {
+            (population + i)->infectionTimer--;
+            (population + i)->asymptomaticTimer--;
+        }
+    }
+}
+
+/* Genereates the contacts for the infected, and chooses whether the contact will be infected or not */
+void UpdateContacts(Person *population, int infectedID)
+{
+    /* The used variables are defined*/
+    static double severityAgeFactor[5] = {0.0266, 0.1255, 0.28874, 0.4707, 0.41935};
+    double infectionChance;
+    int contact;
+    int neededContacts = (population + infectedID)->numOfContacts;
+
+    /* Goes through every contact that the infected has*/
+    for (int i = 0; i < neededContacts; i++)
+    {
+        /* Picks a random contact for the person as long as they haven't gotten number of contacts they need already.
+        This loop also makes sure the contact is valid(i.e. not in quarantine, deceased, etc.)*/
+        do
+        {
+            contact = (rand() % populationSize);
+        } while (CheckContacts(*(population + infectedID), *(population + contact), contact));
+
+        /* Sets the infected person as a contact of the contact and counts down their number of contacts*/
+        (population + contact)->contactID[(population + contact)->numOfContacts] = (population + infectedID)->ID;
+        (population + contact)->numOfContacts--;
+
+        /* Sets the contact as a contact of the infected person and counts down their number of contacts*/
+        (population + infectedID)->contactID[(population + infectedID)->numOfContacts] = (population + contact)->ID;
+        (population + infectedID)->numOfContacts--;
+
+        /* Sets a chance of infection*/
+        infectionChance = (double)rand() / (double)RAND_MAX;
+
+        /* Checks if the contact will get infected*/
+        if (infectionChance < (reproductiveNumber / avgContacts / (population + infectedID)->infectionPeriod))
+        {
+            /* IF the contact is susceptible they will get infected*/
+            if ((population + contact)->state == susceptible)
+            {
+                (population + contact)->state = infected;
+                (population + contact)->incubation = true;
+                (population + contact)->incubationTimer = incubationPeriod;
+                (population + contact)->asymptomaticTimer = asymptomaticPeriod;
+
+                /* Checks if the contact will get severely infected*/
+                if ((double)rand() / (double)RAND_MAX <= severityAgeFactor[(population + contact)->age])
+                {
+                    (population + contact)->severelyInfected = true;
+                    (population + contact)->asymptomaticTimer = 2; /*assumption that severe infections have a short asymptomatic period.*/
+                }
+            }
+            else /* If the contact doesn't get infected, the check shall then continue to the next contact*/
+            {
+                continue;
+            }
+        }
+    }
+}
+
+/* Function that takes in the results of the simulation prints it in the file*/
+void SaveResultsToFile(FILE *file, int results[][7], int maxValueInDrop[][4])
+{
+    fprintf(file, "Drop nr.;Day;Max infected in drop;;Day;Max hospitalized in drop\n");
+
+    for (int j = 0; j < numOfDrops; j++)
+    {
+        fprintf(file, "%i;", j + 1);
+        fprintf(file, "%i;", maxValueInDrop[j][0]);
+        fprintf(file, "%i;;", maxValueInDrop[j][1]);
+        fprintf(file, "%i;", maxValueInDrop[j][2]);
+        fprintf(file, "%i\n", maxValueInDrop[j][3]);
+    }
+
+    fprintf(file, "\n\n\n");
+
+    fprintf(file, "Time;Susceptible;Infected;Recovered;Deceased;Hospitalized;Quarantined\n");
+    fprintf(file, "0;%i;%i;0;0;0;0\n", populationSize - startInfectedAmount, startInfectedAmount);
+    for (int i = 0; i < timeFrame; i++)
+    {
+        /*The result array is the sum of all the numbers from all of the drops on all days. This prints the average for each result for all of the days*/
+        fprintf(file, "%i;%lf;%lf;%lf;%lf;%lf;%lf\n", results[i][0], ((double)(results[i][1] / (double)numOfDrops)), (((double)results[i][2] / (double)numOfDrops)),
+                (((double)results[i][3] / (double)numOfDrops)), (((double)results[i][4] / (double)numOfDrops)), (((double)results[i][5] / (double)numOfDrops)),
+                (((double)results[i][6] / (double)numOfDrops)));
+    }
+}
+
+/* Bool function to assure that the infected's selected contact is valid*/
+bool CheckContacts(Person infectedPerson, Person contact, int ID)
+{
+    for (int i = 0; i < avgContacts; i++)
+    {
+        if (infectedPerson.contactID[i] == ID || infectedPerson.numOfContacts < 0 || contact.numOfContacts < 0 ||
+            infectedPerson.ID == ID || contact.quarantine == true || contact.state == deceased)
+        {
+            return true; /*Returns true, means that a new contact needs to be found*/
+        }
+    }
+    return false; /*Returns false, means that the checked contact meets all of the criteria for being selected*/
+}
+
+/* Function that counts the amount of people in each state*/
+int CountState(Person *population, int status)
+{
+    int i = 0;
+    for (int j = 0; j < populationSize; j++)
+    {
+        if ((population + j)->state == status)
+        {
+            i++;
+        }
+    }
+    return i;
+}
+
+/* Function that resets the contact array and puts old contact id's into the tracing array*/
+void ResetContacts(Person *population, int time)
+{
+    for (int i = 0; i < populationSize; i++)
+    {
+        for (int k = 0; k < avgContacts; k++)
+        {
+            if (time % 2 == 0)
+            {
+                (population + i)->tracingID[k] = (population + i)->contactID[k];
+            }
+            else
+            {
+                (population + i)->tracingID[k + avgContacts] = (population + i)->contactID[k];
+            }
+        }
+
+        (population + i)->numOfContacts = avgContacts - 1;
+        for (int j = 0; j < avgContacts; j++)
+        {
+            (population + i)->contactID[j] = -1;
+        }
+    }
+}
+
+/*Age set per person, dependent on sex.*/
+void setAgeSex(Person *population)
+{
+    /*Establishes the percentage of males in different age groups*/
+    double underSixtyPercentageMale = 0.3751;
+    double sixtiesPercentageMale = 0.0573;
+    double seventeesPercentageMale = 0.0457;
+    double eigthiesPercentageMale = 0.0157;
+    double ninetyPlusPercentageMale = 0.0024;
+
+    double totalMales = underSixtyPercentageMale + sixtiesPercentageMale + seventeesPercentageMale + eigthiesPercentageMale + ninetyPlusPercentageMale;
+
+    /*Defines to establish the percentage of females in different age groups
+ - NOTE: that ninetyPlus for females is not needed since they make up the remaining part of population*/
+    double underSixtyPercentageFemale = 0.3664;
+    double sixtiesPercentageFemale = 0.0584;
+    double seventeesPercentageFemale = 0.0505;
+    double eigthiesPercentageFemale = 0.0225;
+
+    /*For males*/
+    for (int m = 0; m < ceil(populationSize * totalMales); m++)
+    {
+        (population + m)->sex = male;
+
+        if (m < ceil(populationSize * (underSixtyPercentageMale)))
+        {
+            (population + m)->age = underSixty;
+        }
+        else if (m < ceil(populationSize * (underSixtyPercentageMale + sixtiesPercentageMale)))
+        {
+            (population + m)->age = sixties;
+        }
+        else if (m < ceil(populationSize * (underSixtyPercentageMale + sixtiesPercentageMale + seventeesPercentageMale)))
+        {
+            (population + m)->age = seventies;
+        }
+        else if (m < ceil(populationSize * (underSixtyPercentageMale + sixtiesPercentageMale + seventeesPercentageMale + eigthiesPercentageMale)))
+        {
+            (population + m)->age = eighties;
+        }
+        else if (m < ceil(populationSize * (totalMales)))
+        {
+            (population + m)->age = ninetyPlus;
+        }
+    }
+
+    /*For females*/
+    for (int f = ceil(populationSize * totalMales) + 1; f < populationSize; f++)
+    {
+        (population + f)->sex = female;
+
+        if (f < ceil(populationSize * totalMales) + floor(populationSize * underSixtyPercentageFemale))
+        {
+            (population + f)->age = underSixty;
+        }
+        else if (f < ceil(populationSize * totalMales) + floor(populationSize * (underSixtyPercentageFemale + sixtiesPercentageFemale)))
+        {
+            (population + f)->age = sixties;
+        }
+        else if (f < ceil(populationSize * totalMales) + floor(populationSize * (underSixtyPercentageFemale + sixtiesPercentageFemale + seventeesPercentageFemale)))
+        {
+            (population + f)->age = seventies;
+        }
+        else if (f < ceil(populationSize * totalMales) + floor(populationSize * (underSixtyPercentageFemale + sixtiesPercentageFemale + seventeesPercentageFemale + eigthiesPercentageFemale)))
+        {
+            (population + f)->age = eighties;
+        }
+        else if (f < populationSize)
+        {
+            (population + f)->age = ninetyPlus;
+        }
+    }
+}
+
+/* Function that counts the amount of people in each agegroup*/
+int CountAge(Person *population, int ageGroup)
+{
+    int i = 0;
+    for (int j = 0; j < populationSize; j++)
+    {
+        if ((population + j)->age == ageGroup)
+        {
+            i++;
+        }
+    }
+    return i;
+}
+
+/*Function which can save an individual drop to that data file, in case further analysis of a specific drop is neccesary*/
+void SaveDrop(Person *population, int time, FILE *file, int drop, int selectedDrop)
+{
+    int q = 0, a = 0, s = 0;
+    if (drop == selectedDrop)
+    {
+        for (int index = 0; index < populationSize; index++)
+        {
+            if ((population + index)->quarantine == true)
+            {
+                q++;
+            }
+            if ((population + index)->severelyInfected == true)
+            {
+                s++;
+            }
+            if ((population + index)->asymptomaticTimer >= 0)
+            {
+                a++;
+            }
+        }
+        fprintf(file, "%i;%i;%i;%i;%i;%i;%i;%i\n", time, CountState(population, susceptible), CountState(population, infected),
+                CountState(population, recovered), CountState(population, deceased), s, q, a);
+    }
+}
+\end{lstlisting}

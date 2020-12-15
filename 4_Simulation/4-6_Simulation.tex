@@ -1,0 +1,155 @@
+\section{Our Simulation}
+%VI SKAL FIXE LINJETAL FOR KODEN
+
+Within this section, we will walk through key features of the simulation to properly explain the structure of the code. Special attention will be paid to central function calls, as it was in section \ref{sub: flowcharts}. 
+
+In a similar vein, key aspects of the simulation will also be outlined and defended in this section. Key aspects include defence of data chosen, debugging tools and the usability and versatility of the code itself for future research.
+
+\subsection{Key Elements in Our Simulation}
+While creating our simulation, we took a lot of inspiration from one of most well-known infection simulations which is the SIR-model, that is described in section \ref{sec: SIR-based simulation}. This inspiration was primarily based in how we wanted to separate the population in terms of states. The skeleton of the code is primarily built around the discrete event-based simulation type.
+
+We defined four medical states in our program which the population could switch between. These states are as follows: Susceptible, infected, recovered, and deceased. These were defined in a global enum, making it possible for us to easily change and check the states of the population across different functions.
+
+\begin{lstlisting}[language=c, caption={Enum Medical States}, captionpos=b, label={snippet:EnumStates}]
+enum states
+{
+    susceptible,
+    infected,
+    recovered,
+    deceased
+};
+\end{lstlisting}
+
+Our simulation primarily revolves around state changes in our population array, which is a struct array of the Person struct. The Person struct is defined in the beginning of the program and can be seen in its full form in snippet \vref{snippet:PersonStruct}. By changing each person's state and logging these changes accordingly, we can trace the spread of infection.
+
+Our simulation starts with defining all the parameters that we use throughout the code, so they are together at the top and easily accessible. This makes it possible to easily configure all the parameters instead of having to change a given number. The accessibility and use of the defines are described thoroughly in section \vref{Usability and versatility of the code}.
+
+\begin{lstlisting}[language=c, caption={Person Struct}, captionpos=b, label={snippet:PersonStruct}]
+struct Person
+{
+    int ID;
+    int age;
+    int sex;
+    int state;
+    int asymptomaticTimer; 
+    int incubationTimer;
+    int infectionTimer;
+    int quarantineTimer;
+    int infectionPeriod;
+    int numOfContacts;
+    bool incubation, severelyInfected, quarantine;
+    int contactID[avgContacts], tracingID[avgContacts * 2];
+};
+\end{lstlisting}
+
+In the struct in snippet \ref{snippet:PersonStruct} are all the relevant variables which are used, to activate a state change (i.e. Timers and age), indicate a sub-state (i.e. incubation, etc.) or enable contact tracing (i.e. all of the IDs and the number of contacts).
+
+The simulation runs a number of times to get an average and thereby a more accurate result. We will refer to each of these runs as a drop, as is customary within simulation. These runs happen in the main loop of the program which can be seen from line 110 - 167 in the source code in appendix \vref{Appendix: SourceCode} and it has also been described as pseudocode below. \\
+
+\begin{algorithm}[H]
+    \For{each drop}{
+        Allocate memory for the population (struct array) \\
+        Initialize variables of the population arrays \\
+        Call a function to set age and sex of the population \\
+        Start infection by infecting some of the population \\
+        \For{each day}{
+            \emph{UpdatePopulation:} function call to check and update the states in the population \\
+            \emph{ResetContacts:} function call to store contacts for tracing and resetting contacts so new ones can be selected for the next day. \\
+            \emph{SaveResults:} function call to store all of the relevant data for later output in a .csv file.
+        }
+        Free the allocated storage for the population array
+    }
+    \caption{Pseudocode for the main loops of the simulation \label{pseudo: main loop}}
+\end{algorithm}
+Each time the program runs through the drop for loop described above, a simulation is completed and its data is stored.
+
+\subsubsection{UpdatePopulation function}
+Our UpdatePopulation function on line 224-314 in appendix \vref{Appendix: SourceCode} goes through the whole population array and updates their medical state through various if-statements, according to their current state and timers. 
+
+First off, we generate a random number to simulate the chance of someone dying of COVID-19. The chance of dying correlates to what age group a person is in, as is in accordance with real world data. This works through an if-statement that checks if they are severely infected and not already deceased, and if the chance hits, then they are set to deceased.
+
+Afterwards, we have three if-statements that check if the person is infected, is in quarantine or is currently in incubation state. If so, the incubationTimer, quarantineTimer and infectionTimer for the given person ticks down. They also remove the infection state, incubation state and quarantine state if their individual timer reaches zero.
+
+The next if-statement in UpdatePopulation runs contact tracing. It checks if a person is infected and whether their incubation period is over. If both are true, they get put in quarantine with a random amount of the 20 people they have been in contact with the last two days. The way contact tracing works is with the person struct's IDs that gets exchanged with the contacts that are generated for them if they were infected. We have an UpdateContacts function call that is described further below, where the ID exchange and more is described.
+The ID's are stored for the last two days of the simulation, a random number between 5 and 20 is then generated when a person is infected and no longer asymptomatic, this then determines how many of their contacts will get traced and put into quarantine. Simulating the random amount of people one is able to remember that they have been in contact with.
+
+Lastly in the UpdatePopulation function we have three if-statements. The first if-statement sets the asymptomatic timer to -1 if the asymptomatic timer is 0. This makes sure that they wont enter a loop, where they continuously get put into quarantine.
+The next if-statement is where the UpdateContacts function is called, and it is only called for infected persons.
+And the last if-statement takes asymptomaticTimer and infectionTimer down by 1, until they are healthy again.
+
+\textbf{The UpdateContacts function} is called within the update population whenever an infected has been found, it can be seen in the code from line 317 - 370. This function finds suitable contacts for the infected (i.e. not in quarantine, deceased, etc.). After a contact is found, they exchange ID's with the infected, which ensures that the contact can not be selected again and that it can be traced. If the contact is susceptible they have a chance of being infected, if that happens their state is updated to infected and their incubation period as well as their asymptomatic period is set. Lastly they have a chance of becoming severely infected, which we define as an infection requiring hospitalisation.
+
+\subsubsection{ResetContacts function}
+The ResetContacts function is an essential function that is part of the main loop in the program. This function ensures that the contacts each person has had throughout that day is reset before the next day starts, it also stores the same contacts in the persons tracingID array, so that they can be traced if necessary. On uneven days, the first half of the tracingID array is overwritten, and on even days, the second half gets overwritten. This is because we contact trace 48 hours(2 days) back in time.
+
+The remaining functions are mostly nonessential for the simulation part of the program, these are functions such as SaveResults, countState, etc. However, they do support the program and save the results for the simulation. Because these are not essentiel they will not be explained in further detail, but they can be seen in the source code in appendix \ref{Appendix: SourceCode}.
+
+
+\subsection{Usability and Versatility of the Code} \label{Usability and versatility of the code}
+
+As has been stated several times throughout this report, the COVID-19 pandemic has laid the foundation for many different studies - unfortunately leading to much contradictory data regarding mortality rates, risks of infections, efficiency of certain preventive measures, etc. 
+
+The code has specifically been written with this uncertainty of data in mind. Therefore, the code uses several symbolic constants that can easily be changed (E.g. timers, periods, number of contacts) when data regarding spread and mitigation of COVID-19 becomes more certain. This increases the code's usability and versatility, making it possible to run the code with completely different parameters at a moment's notice.
+
+For instance we have our infection period set to 10(days) where there might be published some new data, which sets it to a different number of days. In such situations, it can be easily configured to newly published data. 
+
+Similarly, population size and the like can easily be changed, so the simulation can be applied to an entirely different, geographical location than the one used as an example in this project (Aalborg, Denmark). When more congruent data of COVID-19 has been found, this code can be updated accordingly. 
+
+\subsubsection{Debugging Tools}
+
+It was decided to leave in the debugging tools in the code. This was done to further support the usability of the code for further study. By leaving in debugging tools, the code can more easily be adjusted to other simulations of COVID-19 and, arguably, other pandemics/epidemics. An example of this would be our save drop function which can be seen on line 541 - 564 in appendix \ref{Appendix: SourceCode}, which can save an individual drop of a simulation in the data file. This is useful if a certain drop is giving unexpected results.
+
+\subsection{Data used in Our Simulation}
+
+Since the aim is to simulate a realistic depiction of spread of COVID-19, variables and parameters within the code have been decided upon based on real (or realistic) numbers. In instances where there are no (or contradictory) sources, logical estimates have been made based on similar situations. These estimates will naturally be defended whenever applied.
+
+\subsubsection{Age/sex demographics and mortality rate}
+For instance, the age groups in the code are based on demographic data from Globalis, a digital reference work funded by the UN \citep{globalisdk_danmark_2020}. The data is based on the entire population of Denmark, which has simply been laid out as a percentage distribution. This percentage distribution is one of the few instances of non-symbolic constants, since they are specific to Denmark's population. By using up-to-date data, a more realistic simulation of the spread can be achieved. As mentioned above, this is especially important due to mortality rates among elderly patients.
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ccccccc}	% Afstem antal tegn og kolonner! (l for venstre, c for center, r for højre)
+		\toprule
+		Age group & People hospitalized & People deceased & Cases & \% Hospitalized & \% Deceased \\\midrule
+		0-59 & 2202 & 29 & 82770 & 2.66\% & 1,3\%           \\
+		60-69 & 919 & 82  & 7322 & 12.55\% & 8.923\%           \\
+		70-79 & 1301 & 255 & 4510 & 28.847\% & 19.6\%           \\
+		80-89 & 1005 & 347 & 2135 & 47.07\%  & 34,53\%         \\
+		90+ & 260 & 191 & 620 & 41.935\% & 73,5\%         \\
+		\bottomrule
+	\end{tabular}
+	\caption{Overblik over cases.}
+	\label{tab:cases}
+\end{table}
+
+%The age groups are also separated by sex, but lack of proper data to correlate mortality rate to the different sexes, meant that this was omitted as factor, but it can be implemented without much trouble, since the simulation was coded with sexes as a factor in mind.
+
+\subsubsection{Reproductive number (R-Value)}
+A piece of data that was particularly hard to find was the R-value. The R-value represents a given disease's ability to spread. For instance, an R-value of 1.0 would give a completely linear \say{growth}, meaning the disease would neither increase nor decrease. When the R-value is larger than 1.0, the disease will spread. When the R-value is smaller than 1.0, the disease will die out.
+
+While the concept of the R-value is quite straightforward, the implementation is not. An R-value is dependent on several factors, and it varies depending on country. Similarly, it can also fluctuate when the many different factors change. Therefore, while we have made use of a static R-value, a fluid R-value would have made for a more precise simulation. For this simulation we have used the estimated $R_0$ that oxford's university has come up with, which is 2.63.
+\say{SARS-CoV-2, the coronavirus that has caused the covid-19 pandemic, has an estimated $R_0$ of around 2.63, says the University of Oxford’s COVID-19 Evidence Service Team. However, estimates vary between 0.4 and 4.6.} \citep{mahase_covid-19_2020}
+
+\subsubsection{Virology data}
+Most of the other numbers which we have used in the simulation are based partly on our assumptions, partly on the research we have read and partly on what we thought would work best in our simulation. This is because at the moment of this report being written there is a lot of studies and information about the virus, which have conflicting estimates of things like the infection period, incubation period, pre- / asymptomatic period. This is also one of the reasons that versatility has been considered, and these factors have been placed at the top of the code, so they easily can be updated to more accurate data.
+
+\subsubsection{Contact tracing}
+
+% Argue for all the numbers we use in the code here
+
+% Deathrate pr age group
+
+% Severity pr age group
+
+% Avg contacts
+
+% Quarantine period - from contact tracing
+
+% avg infection period 
+
+% incubation period
+
+% traceable contacts
+
+% contact tracing start time
+

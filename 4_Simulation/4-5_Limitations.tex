@@ -1,0 +1,32 @@
+\section{Limitations and Challenges} \label{sec: limitations and challenges}
+
+There are several potential limitations and challenges that can occur in a program. For the sake of transparency, some of the limitations of our source code as well as 
+
+\subsection{Randomisation of larger populations}
+
+The C functions "rand" and "srand" are functions that are used to randomise within a program. These rely on the value "RAND MAX", which is 32,767. The function is not able to find a random number which is larger than this. If the simulation were to be scaled up, another method of generating random numbers would have to be found. When choosing contacts with a random value, and then checking if they will get infected with a random number, the number of people who will get checked are only the ones within the 32,767. If the simulation was scaled to anything larger than a population of 32,767 people, the program would simply stop infecting people. This is not a limit to the C language, but rather our program. Given the wide-spread usage of C, we would assume there exists a way to generate larger random number. However the group didn't have time to do further research, especially given how the actual size of the simulated population is 12500.
+
+\subsection{Limited Population Size}
+
+When we constructed the array with our population, we ran into a challenge where the population could not be much larger than 12,500 people. This would maybe have been fine when creating a simulation on this small of a scale. But if the simulation were to be scaled up at all, a solution had to be found.
+
+We found our solution in the function "calloc". When initialising an array normally, the size has to be allocated statically. This can create a problem with the memory allocation, which will make it impossible to run the simulation. However, when using "calloc", the memory is allocated dynamically and then freed when the function "free" is called. This ensures the simulation cannot run into a memory error. Therefore the simulation can run with a much larger population size.
+
+\subsection{Statistical Uncertainty} \label{sub: Statistical Uncertainty}
+
+It has been a challenge to find some consistent values for mortality and severity since the values change from day to day. For example, SSI publishes new data each day at 2.00 PM which sometime change dramatically from the day before. This increases the uncertainty of whether or not our simulation represents a real-life situation and also if the contact tracing functions as intended.
+
+Since COVID-19 officially started in China during December 2019 \citep{gorbalenya_severe_2020}, quickly transforming into a global pandemic, there have been differing and sometimes contradictory statements regarding data for the spread and containment of the illness. 
+
+Included in this challenge are factors such as, which sources are up-to-date and relevant. For the data to be up-to-date for this particular project, it cannot have been published during the early days of COVID-19, which we have loosely estimated to be March 2020. Any sources from this period, while imperative to document the pandemic, are arguably uncertain, since the world knew little to nothing about the nature of the disease at that point in time.
+
+Sources being relevant to the scope of this particular problem is naturally necessary for them to be included in this project. Since the geographical scope is limited to a region of Denmark, sources that focus on other parts of the world are only peripherally relevant to this project. However, during instances where there is no data to be found for our specific, geographical scope, we must extrapolate data from other geographical scopes. This can lead to uncertainty.
+
+Similarly, our primary source for mortality rate is \cite{ssi_statens_nodate}, whose data is of course based on a spread that is already mitigated. Since Denmark has used preventive measures such as
+
+\subsection{Disappearing People in Population}
+Due to the natural type specifics of integers and doubles, and the way they behave with each other, we had issues regarding the amount of people in our array of structs. Often at times after we completed a run of the simulation, the data file which results are saved to, indicated that the simulation initialised a population size of ±2 to the defined population size. This was due to an incorrect mixture and deployment of the C functions "ceil" and "floor". These functions round values up and down, respectively.
+
+In the early stages of developing the simulation, we realised it would be necessary to typecast doubles to integers. We had integers calculated and returned from functions, such as an integer of 15 people divided by 100 days, returning a 1.5 double. To use this double value, it first needs to be assigned as an double through typecasting the integer to the double type, which then allows for using the proper value for calculation of percentages.  
+
+The final solution to the disappearing people in the population was simply to calculate using only doubles. While this does give decimal-point numbers for medical states, it keeps the population stable and, in the end, leads to more precise calculations within the simulation.

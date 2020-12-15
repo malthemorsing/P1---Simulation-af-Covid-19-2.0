@@ -1,0 +1,19 @@
+\section{Virology of SARS-CoV-2} \label{sub:virology}
+
+We include the virology of the specific pathogen, SARS-CoV-2, to further specify the spread of the illness in our simulation. The goal with including virology of SARS-CoV-2 is to more accurately map how the illness might spread through a population. For instance, is the illness more likely to spread among some demographics than others? Likewise, might mortality rates be higher among certain demographics than others? Lastly, do these measures warrant a specification of said demographics within the simulation? 
+
+The virology of SARS-CoV-2 is not a field where any conclusions can be seen as being final, as it continuously gets updated when new discoveries are made. Therefore, any and all statements made in this paper regarding virology of SARS-CoV-2 should be considered arguable at best.
+
+Severe acute respiratory syndrome coronavirus 2, also known as SARS-CoV-2 causes  Corona Virus Disease 2019 (COVID-19). SARS-CoV-2 is a highly pathogenic and very easily transmitted virus that has proven a severe threat to the health of several demographics across the world.  
+
+The incubation period (the time from exposure to symptom onset) is set to be about 10 - 14 days, though the more standardised incubation period is set to be 14 days. If the infected person has pre-existing conditions that make them immunocompromised, the incubation period can be as long as 20 days. Similarly to incubation periods, levels of contagion can vary greatly betweeen individuals \citep{ries_how_2020}. Incubation and contagion can also be affected by the severity of the illness - ie., if the infected person has more severe symptoms, they can be considered more highly infectious.
+
+The effect that various variables such as age, sex, pregnancy and the like have on the individual's experience with SARS-CoV-2 are disputable and as of the writing of this paper, there are few sources to draw from. However, a few conclusions can be drawn with some certainty.
+
+Firstly, regarding sex, males are more likely to have worse symptoms and significantly more likely to die from the illness (70.3 percent male deaths versus 29.7 percent female deaths) \citep{jin_gender_2020}. This conclusion was also drawn by Kragholm et al, who further concluded that \say{men were significantly associated with higher risks of a 30-day composite endpoint of all-cause death, severe COVID-19 diagnosis, or ICU admission as well as individual components of all-cause death and ICU admission.} \citep{kragholm_association_nodate} Kragholm et al's study was conducted specifically within Denmark, making their numbers especially relevant to this project.
+
+Secondly, regarding age, older demographics are more likely to die from the illness, especially with comorbidities \citep{jin_gender_2020}. However, younger demographics are more likely to spread the illness \citep{ssi_statens_nodate} and less likely to have severe symptoms. Asymptomatic carriers are also especially found amongst the younger demographics.
+
+Lastly, concerns have been raised regarding pregnancy and SARS-CoV-2. WHO have found that pregnant women of all ages are more likely to be showing symptoms than non-pregnant women. WHO also note a trend for infected, pregnant women to give birth prematurely. A relatively large number (1 in 4) of babies born to women, who tested positive for COVID-19, also needed to be admitted to neonatal units. Deaths for both women and babies remain low, however \citep{who_new_nodate}. 
+
+In conclusion, biological sex and age are virological factors that we deem more relevant to take into consideration when simulating the spread of COVID-19 than pregnancy. In a similar vein, the statistics behind the difference of severity and mortality for age and sex are more readily available. Therefore, we will divide our population in our simulation up according to sex and age as realistically as possible.

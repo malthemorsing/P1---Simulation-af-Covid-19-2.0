@@ -1,0 +1,200 @@
+\section{First meeting - 9/10-20}
+The proposal is very vague, so there are many opportunities
+
+Google if someone else have done something similar (they have /D) 
+
+Start with researching basic information regarding COVID spread 
+
+Simulate the effect of spreading COVID without any restriction measures
+- what happens if you include restrictions? (masks, working from home, changing key variables etc)
+
+\subsubsection{Aspects to think about:}
+\begin{itemize}
+    \item probability of the people to run into each other
+    \item What is the effect on society?
+        \item hospital capacity
+        \item cost
+\end{itemize}
+
+\subsubsection{Focus on:}
+Model to calculate spread of COVID
+- Divide population into groups (different probability of getting the virus)
+
+- Include variables (masks, social distancing, etc) that can influence the model's output
+- Be realistic regarding risk of infection
+
+Schedule up until January
+- Gantt chart
+
+Scenario:
+Utilize publically available data to build the simulation from as realistic numbers as possible
+If able to, ask Aalborg hospital for data, but if not, make some up
+
+\subsection{For next meeting, Monday @ 11:15}
+Prepare Gantt chart
+
+Figure out variables and population division to build the model upon
+
+\section{Second meeting - 12/10-20}
+No agenda - because we're so smart
+
+For Brainstorm:
+Think about the general problem and model, wait with simulation -> Simulation shouldn't start until after statusseminar
+- THINK BIG!
+
+Follow available framework
+- Thinking solution up from scratch is also allowed, but focus on problem
+- Theory first 
+-- What is the problem?
+--- What are the relevant aspects of the problem?
+---- How would we phrase the problem?
+Afterwards, we can go simpler if the problem is too complex - BUT START BIG
+
+Focus both on spread and societal penalty of the spreading of the virus
+
+Search for numerical evidence (SSI, hospitals, etc)
+- Consider which parametres are left out/are not immediately obvious (jobs, etc)
+- In short, figure out an educated guess
+
+How to quantify:
+- Focus first on parametres of spreading
+- Rank the parametres according to relevance
+- Argue for relevance of parametres
+- Reliability of the parametres (which might be educated guesses?)
+
+Afterwards, focus on the interdependencies of the variables and parametres:
+- older people with higher income are more likely to move around more
+- people who live outside of the city are less likely to move around
+- hospital capacity per region/city 
+- what jobs can be adapted to WFH, and what jobs cannot?
+CONSIDER MAKING A VISUAL FIGURE FOR THIS
+
+For next time: 
+\begin{itemize}
+\item Make agenda
+\item Research
+\item Do not rush, assign enough time for each point
+\item Give each person enough to do
+\item Rotate responsibilities
+\item Send agenda and timeplan to Gilberto by Tuesday 20/10-20
+\end{itemize}
+\newpage
+
+
+
+\section{Third Meeting - 21/10-20}
+\subsection{Agenda: }
+\begin{enumerate}
+\item The purpose of the meeting
+\item Group contract 
+
+Gilberto will get back to us after the meeting on whether it's approved,
+then we can sign it
+
+\item P1 Project update
+
+Strong advice: Make a weekly plan with what we are expected to achieve
+
+We might lose track without it
+
+Add weekly goals to timeplan regarding layout
+
+\textbf{Report layout:}
+
+Split Data-chapter and Simulation-chapter into two
+
+
+Also add chapter on simulation results
+
+
+Otherwise fine
+
+
+Starting broad and narrowing down => Gilberto is a fan!
+
+\item Further work for next week
+
+Make Gantt chart - revise timeplan to include parallel workflow, email to Gilberto when done
+
+\textbf{Gilberto says}
+
+Brainstorm seems quite exhaustive
+
+More sources on contact tracing and preventive measures
+
+More sources on specific statistics - region or city
+If we cannot find this kind of regional or local source, we can assume that it is the same as the general
+
+Include sources and focus on hospital capacity => Angle towards societal problem
+
+Gilberto is on board with getting numbers from SSI over e-mail, but not with going there physically to get the data. CC Gilberto on the e-mail to SSI.
+
+\textbf{Two stages in the project:}
+
+1st stage where we simulate without any preventive measures
+
+2nd stage where we simulate with the chosen variables and scope that include preventive measures
+
+Focus on healthcare and economy
+-> If we don't utilize any preventive measures, what are the consequences?
+
+\textbf{Hospital capacity}
+
+Get data from Aalborg Hospitalerne about capacity <- This will be our limit for the contact tracing
+
+\item Scheduling next week + meeting (perhaps Wed-Thursday) 
+
+Work on problem analysis until next week, then discuss with Gilberto
+
+\textbf{Find a model for how to simulate}
+
+Find different levels of infection that we can simulate
+
+Consider parametres to include in simulation
+
+Start simple!
+
+\textbf{Literature on simulation approaches}
+
+Find it, consider it
+
+Focus on event-based simulations
+
+\textbf{Meeting}
+
+Thursday 29th October, 13:00
+
+- Only contact Gilberto through e-mail
+
+\item AOB (Any other business) 
+
+\textbf{How to include code in report:}
+
+Include important, functional code in the report when needed
+
+Leave the code in its entirety an appendix
+
+\item Evaluation of the meeting 
+\end{enumerate}
+
+\section{Fourth Meeting} - 29/10-20
+
+Mention all parametres during outline 
+
+Select parametres for simulation based on relevance and simplicity
+
+RESTRUCTURE
+
+Have a Scope of report and Scope of simulation - Scope of simulation goes as introduction to Chapter 3, Scope of report goes to introduction
+
+Include HV-map in Problem Analysis (before Variables and such). Describe in detail what is chosen for the model. - Tjek
+
+Virology goes first, then who is affected (societal aspects) and then what we can do to limit outbreak (preventive measures)
+
+Model should come earlier - write down on pen and paper - then implement model in C - this is where we talk about simulation - 
+
+INSERT CHAPTER 4 - Done
+For performance results - results of simulation
+
+IN CHAPTER further research
+Here goes the parametres that we could not include in the model
