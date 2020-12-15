@@ -1,4 +1,4 @@
-\subsection{COVID-19 and Its Effect on Hospital Capacity} \label{sub: Hospital Capacity}
+\section{COVID-19 and Its Effect on Hospital Capacity} \label{sub: Hospital Capacity}
 
 A region's hospital capacity is in direct correlation with survival rates for the region's citizens. Therefore, having a hospital capacity that can withstand COVID-19 is vital for a society's ability to likewise withstand the pandemic. 
 
@@ -8,7 +8,7 @@ Some scholars have simulated hospital capacity on local scales, such as Weissman
 
 Our proposal for analysing COVID-19's effect on hospital capacity is instead to see hospital capacity as a static number and compare this static value to the number of severely infected in our source code (see Appendix \ref{Appendix: SourceCode} Source Code). From the get-go, we have viewed our severely infected medical state as the medical state needing medical care.
 
-\subsubsection{Definition of Hospital Capacity}
+\subsection{Definition of Hospital Capacity}
 
 What is meant with the phrase \say{hospital capacity}? Each hospital has some influence on what is meant with this phrase, meaning that there is not a universal definition. However, all hospitals within the same country have. Because the scope of this project's simulation is limited to the greater Aalborg area, we will use a Danish definition of hospital capacity. This definition includes the following for each hospital:
 \begin{itemize}
@@ -22,13 +22,13 @@ If a hospital is reaching its capacity, patients can be moved to other hospitals
 
 For this project and simulation, which is based on a much smaller geographical scale, we will focus on the hospital capacity of Aalborg.
 
-\subsubsection{Hospital Capacity in Denmark}
+\subsection{Hospital Capacity in Denmark}
 
 The hospital capacity within Denmark has steadily risen since the beginning of the COVID-19 pandemic in preparation for an aggravated increase in infected people. Specifically for Aalborg and Northern Jutland, a pandemic unit was established with 47 beds in total; 30 regular beds and 17 beds for intensive care \citep{dansk_sygeplejerad_fra_2020}. The number of respirators for each hospital remains unknown, but this information gives us a number to calculate with.
 
 An important note to add on to this is the fact that hospitals can adapt relatively quickly to an increase in patients. As seen on esundhed.dk, the number of occupied beds in ICUs in Aalborg hospitals increased dramatically during March and April (\cite{esundheddk_sengepladser_2020}). March and April were the months throughout which the pandemic was at its first peak. Precise numbers were 32 beds in February, 78.8 in March, 90.9 in April and 51.3 in May. 
 
-\subsubsection{Our Simulation's Hospital Capacity Results}
+\subsection{Our Simulation's Hospital Capacity Results}
 
 As with all other figures in chapter \ref{chap:result}: Results, the graphs on hospitalisation are based on the 808420 seed. As can be seen in figure \vref{fig:hospitalized NO CT}, hospitalisation peaks just about the same time as peak of infection (as seen in figure \vref{fig:peak_infected}). Infection peaks around day 112, whereas hospitalisation peaks around day 108. Since hospitalisation is dependent upon severe infection, the correlation is logical. The peak for hospitalisation is 200 people.
 

@@ -1,5 +1,6 @@
 \section{Sensitivity Study}
 A sensitivity study is done to get a better understanding of how different parameters of our contact tracing implementation affects the simulation. We have chosen to change the day we start the tracing, the quarantine period and the amount of traceable contacts. To see how these affect the effectiveness of contact tracing in the simulation. Only one variable will be changed at a time to ensure that we know exactly how a specific variable had an effect.
+
 The base settings for our simulation is that the starting time for CT is set to 30 days, the number of contacts a person has each day is 10, the tracing of contacts goes 2 days back, the quarantine period for traced contacts is 14 days and the number of contacts that can be traced is a random number between 5 and 20. 
 
 \subsection{Tracing start time}
@@ -44,7 +45,7 @@ It is also interesting to see that the early start in figure \ref{Subfig:CT15} r
 \label{fig:CTstart2}
 \end{figure}
 
-Since the starting time had such a notable effect on the number of people who became infected, it also had 
+Since the starting time had such a notable effect on the number of people who became infected, it also had very big impact on the 
 
 
 \subsection{Quarantine Period}
@@ -69,7 +70,29 @@ In this section we are looking at how the quarantine period will affect the amou
 \label{fig:test}
 \end{figure}
 
-The graphs show that when the quarantine period is increased, we see that we have a much lower 
+The graphs show that when the quarantine period is increased, we see that we have a much lower number of infected people pr day
+
+
+
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=.95\linewidth]{0_billeder/CT_HOS_7.png}
+  \caption{Quarantine period of 7 days}
+  \label{fig:sub1}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=.95\linewidth]{0_billeder/CT_HOS_21.png}
+  \caption{Quarantine period of 21 days}
+  \label{fig:sub2}
+\end{subfigure}
+\caption{Comparison between 7 day and 21 day quarantine period}
+\label{fig:test}
+\end{figure}
+
 
 \subsection{Traceable contacts}
 
