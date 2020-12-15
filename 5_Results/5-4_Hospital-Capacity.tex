@@ -26,19 +26,21 @@ For this project and simulation, which is based on a much smaller geographical s
 
 The hospital capacity within Denmark has steadily risen since the beginning of the COVID-19 pandemic in preparation for an aggravated increase in infected people. Specifically for Aalborg and Northern Jutland, a pandemic unit was established with 47 beds in total; 30 regular beds and 17 beds for intensive care \citep{dansk_sygeplejerad_fra_2020}. The number of respirators for each hospital remains unknown, but this information gives us a number to calculate with.
 
-An important note to add on to this is the fact that hospitals can adapt relatively quickly to an increase in patients. As seen on esundhed.dk, the number of occupied beds in ICUs in Aalborg hospitals increased dramatically during March and April (\cite{esundheddk_sengepladser_2020}). March and April were the months throughout which the pandemic was at its first peak. Precise numbers were 32 beds in February, 78.8 in March, 90.9 in April and 51.3 in May. 
+An important note to add on to this is the fact that hospitals can adapt relatively quickly to an increase in patients. As seen on esundhed.dk, the number of occupied beds in ICUs (Intensive Care Units) in Aalborg hospitals increased dramatically during March and April (\cite{esundheddk_sengepladser_2020}). March and April were the months throughout which the pandemic was at its first peak. Precise numbers were 32 beds in February, 78.8 in March, 90.9 in April and 51.3 in May. 
+
+ 
 
 \subsection{Our Simulation's Hospital Capacity Results}
 
-As with all other figures in chapter \ref{chap:result}: Results, the graphs on hospitalisation are based on the 808420 seed. As can be seen in figure \vref{fig:hospitalized NO CT}, hospitalisation peaks just about the same time as peak of infection (as seen in figure \vref{fig:peak_infected}). Infection peaks around day 112, whereas hospitalisation peaks around day 108. Since hospitalisation is dependent upon severe infection, the correlation is logical. The peak for hospitalisation is 200 people.
+As with all other figures in chapter \ref{chap:result}: Results, the graphs on hospitalisation are based on the 808420 seed. As can be seen in figure \vref{fig:hospitalized NO CT}, hospitalisation peaks just about the same time as peak of infection (as seen in figure \vref{Fig:covidInfGraphs}). Infection peaks around day 112, whereas hospitalisation peaks around day 108. Since hospitalisation is dependent upon severe infection, the correlation is logical. The peak for hospitalisation is 200 people.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=140mm]{0_billeder/Hospitalized_no-CT.png}
-  \caption{Hospitalised patients per day throughout the simulation with contact tracing disabled.}
+  \includegraphics[width=140mm]{0_billeder/HOS_NO_CT.png}
+  \caption{Hospitalised patients per day throughout the simulation with contact tracing disabled. Red line is regional hospital capacity, blue line is hospital capacity scaled to the sim population.}
   \label{fig:hospitalized NO CT}
 \end{figure}
-
+%Note tal for hospitals capacitet
 As previously stated, the hospital capacity for our entire population (Aalborg area) is 47 beds in total. Therefore, the hospital capacity for our simulation is greatly exceeded. Whether our simulation is seen as representative for the entire population of Denmark or comparative to similar simulations for the rest of Denmark, it can be inferred that this excess in hospitalised patients can be disastrous. Even if taking into account that Aalborg Universitetshospital allowed for 90.9 patients during the highest peak of the pandemic's first wave, there is still an excess of more than 100 percent.
 
 While the infection relatively quickly dies off again in this simulation (under the assumption that re-infection and mutation are not possible), the human and economic cost of exceeding hospital capacity by this much would be quite large.
@@ -47,13 +49,13 @@ In comparison, the figure for hospitalisations in a simulation where contact tra
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=140mm]{0_billeder/Hospitalized_WITH-CT.png}
-  \caption{Hospitalised patients per day throughout the simulation with contact tracing enabled.}
+  \includegraphics[width=140mm]{0_billeder/HOS_CT.png}
+  \caption{Hospitalised patients per day throughout the simulation with contact tracing enabled. Blue line is hospital capacity scaled to the sim population.}
   \label{fig:hospitalized WITH CT}
 \end{figure}
 
-As seen in figure \vref{fig:hospitalized WITH CT}, it takes considerably longer for the hospitalisations to die out compared to figure \vref{fig:hospitalized NO CT}. However, the number of hospitalisations is a fraction of the hospitalisations for the simulation with no contact tracing. Therefore, while hospitals will have to deal with infected patients for much longer, the human and economic cost of a pandemic where contact tracing is implemented is arguably lessened.
+As seen in figure \vref{fig:hospitalized WITH CT}, it takes considerably longer for the hospitalisations to die out compared to figure \vref{fig:hospitalized NO CT}. However, the number of hospitalisations is a fraction of the hospitalisations for the simulation with no contact tracing. Therefore, while hospitals will have to deal with infected patients for much longer, the human and economic cost of a pandemic where contact tracing is implemented is dramatically reduced.
 
 As shown in figure \vref{fig:hospitalized WITH CT}, the number peaks around day 90 and maintains this peak for almost 100 days. However, the peak is at 2.5 hospitalisations. Therefore, the hospital capacity for the population in our simulation is not remotely exceeded.
 
-There are naturally more factors to consider. Since Denmark makes use of pandemic units that are completely closed off from the outside world (\cite{dansk_sygeplejerad_fra_2020}), risk of further infecting other civilians as well as medical personnel is likewise lessened.
+There are naturally more factors to consider. Since Denmark makes use of pandemic units that are completely closed off from the outside world (\cite{dansk_sygeplejerad_fra_2020}), risk of further infecting other civilians as well as medical personnel is likewise reduced.
