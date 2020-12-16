@@ -44,7 +44,7 @@ struct Person
 
 In the struct in snippet \ref{snippet:PersonStruct} are all the relevant variables which are used, to activate a state change (i.e. Timers and age), indicate a sub-state (i.e. incubation, etc.) or enable contact tracing (i.e. all of the IDs and the number of contacts).
 
-The simulation runs a number of times to get an average and thereby a more accurate result. We will refer to each of these runs as a drop, as is customary within simulation. These runs happen in the main loop of the program which can be seen from line 110 - 167 in the source code in appendix \vref{Appendix: SourceCode} and it has also been described as pseudocode below. \\
+The simulation runs a number of times to get an average and thereby a more accurate result. We will refer to each of these runs as a drop, as is customary within simulation. These runs happen in the main loop of the program which can be seen from line 110 - 167 in the source code in appendix \vref{Appendix: SourceCode} and it has also been described as pseudocode below.
 
 \begin{algorithm}[H]
     \For{each drop}{
@@ -103,7 +103,7 @@ It was decided to leave in the debugging tools in the code. This was done to fur
 
 Since the aim is to simulate a realistic depiction of spread of COVID-19, variables and parameters within the code have been decided upon based on real (or realistic) numbers. In instances where there are no (or contradictory) sources, logical estimates have been made based on similar situations. These estimates will naturally be defended whenever applied.
 
-\subsubsection{Age/sex demographics and mortality rate}
+\subsubsection{Age demographics and mortality rate}
 For instance, the age groups in the code are based on demographic data from Globalis, a digital reference work funded by the UN \citep{globalisdk_danmark_2020}. The data is based on the entire population of Denmark, which has simply been laid out as a percentage distribution. This percentage distribution is one of the few instances of non-symbolic constants, since they are specific to Denmark's population. By using up-to-date data, a more realistic simulation of the spread can be achieved. As mentioned above, this is especially important due to mortality rates among elderly patients.
 
 \begin{table}[H]
@@ -134,7 +134,9 @@ While the concept of the R-value is quite straightforward, the implementation is
 Most of the other numbers which we have used in the simulation are based partly on our assumptions, partly on the research we have read and partly on what we thought would work best in our simulation. This is because at the moment of this report being written there is a lot of studies and information about the virus, which have conflicting estimates of things like the infection period, incubation period, pre- / asymptomatic period. This is also one of the reasons that versatility has been considered, and these factors have been placed at the top of the code, so they easily can be updated to more accurate data.
 
 \subsubsection{Contact tracing}
+The parameters we have used for contact tracing are the number of contacts a person has, when the contact tracing is set to take effect, how many contacts that are able to trace and how long people are put in quarantine.
 
+The number of contacts is set to 10, 
 % Argue for all the numbers we use in the code here
 
 % Deathrate pr age group
